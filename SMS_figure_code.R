@@ -177,23 +177,38 @@ burn2 <- our_data_unique %>%
   mutate(habburn = paste(habitat, burnStatus, sep = " ")) %>% 
   dplyr::select(order, family, genus, scientificName, habburn,verbatimElevationInMeters,DEMElevationInMeters)
 
+noburn <- our_data_unique %>% 
+  dplyr::select(order, family, genus, scientificName, habitat, verbatimElevationInMeters,DEMElevationInMeters)
+
 # convert to presence-absence matrix
 sp_pres_ab <- dcast(burn, habburn~scientificName, length) 
 rownames(sp_pres_ab) <- sp_pres_ab$habburn
-
-
 sp_pres_ab <- sp_pres_ab %>%
   dplyr::select(where(is.numeric)) %>% 
   mutate(across(everything(), ~ifelse(.x > 0, 1, 0)))
+
+# presence-absence with no burn habitats
+nb_pres_ab <- dcast(noburn, habitat~scientificName, length) 
+rownames(nb_pres_ab) <- nb_pres_ab$habitat
+nb_pres_ab <- nb_pres_ab %>%
+  dplyr::select(where(is.numeric)) %>% 
+  mutate(across(everything(), ~ifelse(.x > 0, 1, 0)))
+
 
 
 # Compute distance among habitats: 
 dis <- vegdist(sp_pres_ab, method = "bray")
 pcoa <- cmdscale(dis, k = 2, eig = T)
+# distance no burn
+nb_dis <- vegdist(nb_pres_ab, method = "bray")
+nb_pcoa <- cmdscale(nb_dis, k = 2, eig = T)
 
 library(ca)
 corsp <- ca(sp_pres_ab)
 corsp_plot <- plot(corsp)
+# no burn
+nb_corsp <- ca(nb_pres_ab)
+nb_corsp_plot <- plot(nb_corsp)
 
 
 # Make your ca plot object into a thing you can put in ggplot. From here: https://www.r-bloggers.com/2019/08/correspondence-analysis-visualization-using-ggplot/ 
