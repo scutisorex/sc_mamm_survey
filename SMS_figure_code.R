@@ -230,6 +230,10 @@ make.ca.plot.df <- function (ca.plot.obj,
 col_corsp <- c("IntChapUB", "MadOakB", "MadOakUB", "PetConB", "PetConUB", "SDGrassUB", "EcotoneUB", rep("species", 15))
 shape_corsp <- c(rep("B_hab", 7), "Sciuridae", rep("Heteromyidae", 3), "Sciuridae", rep("Cricetidae", 9), "Soricidae")
 
+col_nbcorsp <- c("IntChap", "MadOak", "PetCon", "SDGrass", "Ecotone", rep("species", 15))
+shape_nbcorsp <- c(rep("B_hab", 5), "Sciuridae", rep("Heteromyidae", 3), "Sciuridae", rep("Cricetidae", 9), "Soricidae")
+
+
 threehab <- as.data.frame(corsp$rowcoord[,3]) %>% 
   rename(Dim3 = "corsp$rowcoord[, 3]")
 threesp <- as.data.frame(corsp$colcoord[,3]) %>% 
@@ -242,15 +246,34 @@ corsp_df <-corsp_df %>%
          color = col_corsp)
 
 
+nbthreehab <- as.data.frame(nb_corsp$rowcoord[,3]) %>% 
+  rename(Dim3 = "nb_corsp$rowcoord[, 3]")
+nbthreesp <- as.data.frame(nb_corsp$colcoord[,3]) %>% 
+  rename(Dim3 = "nb_corsp$colcoord[, 3]")
+nbthree <- rbind(nbthreehab, nbthreesp)
+nbcorsp_df <- make.ca.plot.df(nb_corsp_plot, row.lab = "habitat", col.lab = "species")
+nbcorsp_df <-nbcorsp_df %>% 
+  mutate(Dim3 = as.numeric(nbthree[,]), 
+         shape = shape_nbcorsp, 
+         color = col_nbcorsp)
+
 
 # NB: This looks very crappy at the moment, maybe fix it up.
 corsp_niceplot <- ggplot(corsp_df, mapping = aes(x = Dim1, y = Dim2, pch = shape, color = color, label = Label))+
   geom_point(cex = 4)+
-  scale_color_manual(values = c("#f178fa", "#62255c", "#416fb4", "#799943", "#bafdca", "#505050", "#959595", rep("#000000", 15)))#+
+  scale_color_manual(values = c("#f178fa", "#62255c", "#416fb4", "#799943", "#bafdca", "#505050", "#959595", rep("#000000", 15)))+
+  geom_label_repel(cex =3)
+
+corsp_niceplot
+
+nbcorsp_niceplot <- ggplot(nbcorsp_df, mapping = aes(x = Dim1, y = Dim2, pch = shape, color = color, label = Label))+
+  geom_point(cex = 4)+
+  scale_color_manual(values = c("#f178fa", "#62255c", "#416fb4", "#799943", "#bafdca", rep("#000000", 15)))#+
   geom_label_repel(cex =3)
 
 
-corsp_niceplot
+nbcorsp_niceplot
+
 
 # Calculate mean habitat elevation for PCoA
 aggregate(burn2[, 6:7], list(burn2$habburn), mean)
